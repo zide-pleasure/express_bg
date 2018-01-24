@@ -1,26 +1,19 @@
 # 使用node.js + express开发简易后台
 ### 开发环境node.js + express
-## [源码](https://github.com/peng1992/express)
-## 项目预览
-![](./public/images/express.gif)
 
-## 复制项目
-```
-# 将项目克隆到本地
-    git clone https://github.com/peng1992/express.git
 # 安装项目依赖
     cnpm install
 # 启动项目
     cnpm start
 ```
-    
+
 ## 然后在浏览器中打开[http://localhost:3000/]( http://localhost:3000/) 网址就可以看到这个应用了
 ![](./public/images/normal.png)
 
 ## 项目目录
 * bin/
     + www   -------------------------项目入口文件
-* node_modules/   -------------------项目依赖文件夹，cnpm intall后生成 
+* node_modules/   -------------------项目依赖文件夹，cnpm intall后生成
 * public/   
     + data/  ------------------------json数据   
     + images/   ---------------------图片
@@ -37,7 +30,7 @@
     + tujian.ejs
 * app.js   --------------------------存放的Express项目中最基本的配置信息
 * package.json   --------------------项目依赖文件
-            
+
 ## 文件解析
 ### app.js
 	// 引入资源文件
