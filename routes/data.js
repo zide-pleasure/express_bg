@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var fs = require('fs');
+var mysql = require('mysql');
+var dbsql = require("./db");
 var PATH = './public/data/';
 
 //读取数据模块，供客户端调用
@@ -8,35 +10,64 @@ var PATH = './public/data/';
 //公共接口，无需校验
 //data/read?type=it
 //data/read?type=it.json
+//创建数据库连接
+var connection = mysql.createConnection(dbsql);
+//链接数据库
+connection.connect();
 router.get('/read', function(req, res, next) {
     var type = req.param('type') || "";
-    fs.readFile(PATH + type + '.json', function (err, data){
-       if(err){
-           return res.send({
-               status:0,
-               info:'读取文件异常'
-           });
-       }
-       var COUNT = 50;
-        // TODO: try{}catch(){}
-        var obj =[];
-        try{
-            obj = JSON.parse(data.toString());
-        }catch(e){
-            obj = [];
-        }
-        if(obj.length > COUNT){
-            obj = obj.slice(0, COUNT);
-        }
-        return res.send({
-            status:1,
-            data:obj
-        });
-    });
+   //发送查询语句.一个参数是sql,第二个参数是得到值，第三个参数是回调函数，回调函数有三个值，
+   //第一个是error,第二个是rows数组，第三个是filde
+   connection.query('SELECT * FROM `sign_info` order by score', function(error, rows, fields) {
+      //返回数据给前台
+if (error) {
+    res.json(500);
+} else {
+    res.json({status:1,data:rows});
+}
+    // });
+  })
+});
+router.get('/readUser', function(req, res, next) {
+    // var type = req.param('type') || "";
+   connection.query('SELECT * FROM `hqb_daily_user` order by id', function(error, rows, fields) {
+      //返回数据给前台
+if (error) {
+    res.json(500);
+} else {
+    res.json({status:1,data:rows});
+}
+    // });
+  })
 });
 
+router.post('/writeUser',function(req, res, next){
+    if(!req.cookies.user){
+        return res.render('login',{});
+    }
 
-// 数据存储模块——后台开发使用
+    var name = req.param('name') || '';
+    var id = req.param('id') || '';
+
+    if(!name){
+        return res.send({
+            status:0,
+            info:'提交的字段不全'
+        });
+    }
+    //1)读取文件
+        connection.query('INSERT INTO `hqb_daily_user`( `id`, `name) VALUES (?,?)', [id, name], function(err, result) {
+            res.json("添加信息成功");
+        });
+});
+
+router.post('/delete', function(req, res, next) {
+    //得到值
+    var nid = req.body.nid;
+    connection.query('DELETE FROM `sign_info` WHERE `id` = ?', [nid], function(err, result) {
+        console.log(result.affectedRows)
+    });
+});
 router.post('/write',function(req, res, next){
     if(!req.cookies.user){
         return res.render('login',{});
@@ -56,41 +87,45 @@ router.post('/write',function(req, res, next){
         });
     }
     //1)读取文件
-    var filePath = PATH + type + '.json';
-    fs.readFile(filePath, function(err, data){
-        if(err){
-            return res.send({
-                status:0,
-                info: '读取数据失败'
-            });
-        }
-        var arr = JSON.parse(data.toString());
-        //代表每一条记录
-        var obj = {
-            score: score,
-            name: name,
-            Data: Data,
-            reason: reason,
-            id: guidGenerate(),
-            time: new Date()
-        };
-        arr.splice(0, 0, obj);
-        //2)写入文件
-        var newData = JSON.stringify(arr);
-        fs.writeFile(filePath, newData, function(err){
-            if(err){
-                return res.send({
-                    status:0,
-                    info: '写入文件失败'
-                });
-            }
-            return res.send({
-                status:1,
-                info: obj
-            });
+        connection.query('INSERT INTO `sign_info`( `score`, `name`, `Data`, `reason`, `id`, `time`) VALUES (?,?,?,?,?,?)', [score, name, Data, reason,guidGenerate(),new Date()], function(err, result) {
+            res.json("添加信息成功");
         });
-    });
+    // var filePath = PATH + type + '.json';
+    // fs.readFile(filePath, function(err, data){
+    //     if(err){
+    //         return res.send({
+    //             status:0,
+    //             info: '读取数据失败'
+    //         });
+    //     }
+    //     var arr = JSON.parse(data.toString());
+    //     //代表每一条记录
+    //     var obj = {
+    //         score: score,
+    //         name: name,
+    //         Data: Data,
+    //         reason: reason,
+    //         id: guidGenerate(),
+    //         time: new Date()
+    //     };
+    //     arr.splice(0, 0, obj);
+    //     //2)写入文件
+    //     var newData = JSON.stringify(arr);
+    //     fs.writeFile(filePath, newData, function(err){
+    //         if(err){
+    //             return res.send({
+    //                 status:0,
+    //                 info: '写入文件失败'
+    //             });
+    //         }
+    //         return res.send({
+    //             status:1,
+    //             info: obj
+    //         });
+    //     });
+    // });
 });
+
 
 //阅读模块写入接口 后台开发使用
 router.post('/write_config', function(req, res, next){

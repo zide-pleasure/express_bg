@@ -13,6 +13,7 @@
     .addinfo span{display:inline-block;width: 50px;}
     .addinfo_btn{width:450px;height:35px;text-align:center;line-height:35px;border:1px solid #ccc;margin-left:50px;margin-top:20px;border-radius:5px;}
     .addinfo_btn:hover{background-color:#36A0FB;color:#fff;border:1px solid #36A0FB;}
+    .delete{color: #d43047}
     select{width: 200px;line-height: 70px;}
     table{width:1000px;margin-left:auto;margin-right:auto;margin-top:0px;font-size:13px;border-collapse:collapse;border-spacing:0;margin-bottom:50px;table-layout:fixed;}
     table td{border:1px solid #ddd;padding:0;width:20%;white-space:nowrap;overflow:hidden;word-break:break-all;font-size:12px;font-weight:300;text-overflow: ellipsis;}
@@ -59,7 +60,7 @@
 </div>
 
 <div>
-  <table width="1000">
+  <table width="1000" id="table_info">
     <tr style="text-align:center;font-size:15px;height:30px;color:#fff;background-color:#36A0FB;border:0;">
       <td style="width:55px">编号</td>
       <td style="width:100px;">ID</td>
@@ -68,18 +69,8 @@
       <td>说明</td>
       <td>分数</td>
       <td>添加时间</td>
+      <td>操作</td>
     </tr>
-    <%for(var i in data){%>
-    <tr style="text-align:center;height:26px;color:#4C4C4C;">
-      <td width="10px;"><%=(parseInt(i)+1)%></td>
-      <td><%=data[i].id%></td>
-      <td><%=data[i].name%></td>
-      <td><%=data[i].Data%></td>
-      <td><%=data[i].reason%></td>
-      <td><%=data[i].score%></td>
-      <td width="100px;"><%=data[i].time%></td>
-    </tr>
-    <%}%>
   </table>
 </div>
 <script type="text/javascript" src="/js/jquery.min.js"></script>
@@ -95,6 +86,31 @@ $('#Data').DatePicker({
      modalMode: true //display center on screen
 
 });
+$.get("http://10.0.3.53:3000/data/read?type=manager",function(data){
+  // console.log(JSON.stringify(data.data));
+  var info = data.data;
+  var strHtml="";
+  for (var i = 0; i < info.length; i++) {
+    strHtml+="<tr style='text-align:center;height:26px;color:#4C4C4C;'><td width='10px;'>"+ parseInt(i+1) +"</td><td>"+info[i].id+"</td><td>"+info[i].name+"</td><td>"+info[i].Data+"</td><td>"+info[i].reason+"</td><td>"+info[i].score+ "</td><td width='100px;'>"+ info[i].time+ "</td></td><td width='100px;' class='delete' value="+info[i].id+">删除</td></tr>";
+  }
+  // console.log(strHtml);
+  $("#table_info").append(strHtml);
+})
+$("#table_info").on("click",".delete",function(){
+  console.log($(this).attr("value"));
+  var nnid = $(this).attr("value");
+  var strcom = "确定要删除此项id="+nnid+"？"
+  var conf = confirm(strcom);
+  if (conf){
+    $.post("http://10.0.3.53:3000/data/delete",
+    {
+      nid: nnid
+    },function(data){
+      console.log(data);
+    })
+    window.location.reload();
+  }
+})
 </script>
 </body>
 </html>

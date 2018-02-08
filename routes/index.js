@@ -48,17 +48,19 @@ router.get('/edit', function(req, res, next) {
       break;
     }
     fs.readFile(PATH + type + '.json', (err, data) => {
-      if (err) {
-        return res.send({
-          status:0,
-          info: 'fail.....'
-        });
-      }
-      var obj = JSON.parse(data.toString());
+    //   if (err) {
+    //     return res.send({
+    //       status:0,
+    //       info: 'fail.....'
+    //     });
+    //   }
+      var obj = 'JSON.parse(data.toString())';
       return res.render('edit', {
         data: obj
       });
     });
+    // http://10.0.3.36:3000/data/read?type=manager
+
   }else {
     return res.send({
       status:0,
